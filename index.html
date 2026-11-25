@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" initial-scale="1.0">
+    <title>Ruang Cerita - Konseling Awal dengan AI</title>
+    <style>
+        :root {
+            --bg: #f3f7f6;
+            --surface: #ffffff;
+            --primary: #2c6e6a;
+            --primary-hover: #215451;
+            --accent: #e6f2f0;
+            --text: #243332;
+            --muted: #5c706e;
+            --warn-bg: #fff8e6;
+            --warn-border: #f0d799;
+            --warn-text: #6e5214;
+            --border: #dce6e4;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+        body { background: var(--bg); color: var(--text); height: 100vh; display: flex; justify-content: center; align-items: center; padding: 16px; }
+
+        .app {
+            width: 100%; max-width: 1020px; height: 90vh; background: var(--surface);
+            border-radius: 18px; box-shadow: 0 12px 32px rgba(20, 45, 43, 0.08);
+            display: grid; grid-template-columns: 320px 1fr; overflow: hidden; border: 1px solid var(--border);
+        }
+
+        /* Sidebar Kiri */
+        .sidebar {
+            background: #fafcfb; border-right: 1px solid var(--border); padding: 28px 22px;
+            display: flex; flex-direction: column; justify-content: space-between; overflow-y: auto;
+        }
+
+        .brand h1 { font-size: 1.65rem; color: var(--primary); margin-bottom: 10px; font-weight: 700; }
+        .brand p { font-size: 0.92rem; line-height: 1.6; color: var(--muted); margin-bottom: 14px; }
+
+            /* Animasi Napas */
+            .breathe-box { display: flex; flex-direction: column; align-items: center; margin: 18px 0; }
+            circle {
+                width: 115px; height: 115px; border-radius: 50%; 
+            background: radial-gradient(circle at 30% 30%, #74beae, #2c6e6a);
+            display: flex; align-items: center; justify-content: center;
+            color: #fff; font-size:0.82rem; font-weight: 500; text-align: center;
+            animation: breathe 8s ease-in-out infinite;
+            box-shadow: 0 8px 20px rgba(44, 110, 106, 0.25);
+            }
+            @keyframes breathe {
+      0%, 100% { transform: scale(0.88); }
+      50% { transform: scale(1.12); }
+    }
+
+    .disclaimer {
+      background: var(--warn-bg); border: 1px solid var(--warn-border); color: var(--warn-text);
+      padding: 14px; border-radius: 12px; font-size: 0.82rem; line-height: 1.55;
+    }
+
+    /* Area Chat Kanan */
+    .chat-area { display: flex; flex-direction: column; height: 100%; overflow: hidden; }
+    .chat-header {
+      padding: 16px 24px; border-bottom: 1px solid var(--border);
+      display: flex; justify-content: space-between; align-items: center; background: #fff;
+    }
+    .chat-header span { font-size: 0.85rem; color: var(--muted); }
+    .btn-reset {
+      background: transparent; border: 1px solid var(--border); color: var(--muted);
+      padding: 6px 12px; border-radius: 8px; font-size: 0.82rem; cursor: pointer; transition: 0.2s;
+    }
+    .btn-reset:hover { background: var(--accent); color: var(--primary); border-color: var(--primary); }
+
+    .chat-log {
+      flex: 1; padding: 24px; overflow-y: auto; display: flex; flex-direction: column; gap: 14px;
+    }
+    .msg {
+      max-width: 78%; padding: 14px 18px; border-radius: 16px;
+      font-size: 0.95rem; line-height: 1.6; white-space: pre-wrap; word-wrap: break-word;
+    }
+    .msg.bot { background: var(--accent); color: var(--text); align-self: flex-start; border-bottom-left-radius: 4px; }
+    .msg.user { background: var(--primary); color: #fff; align-self: flex-end; border-bottom-right-radius: 4px; }
+    .msg.typing { font-style: italic; color: var(--muted); background: #f0f4f3; }
+    .msg.err { background: #fdecea; color: #a61d24; border: 1px solid #f5c2c7; align-self: center; font-size: 0.85rem; }
+
+    .chips { padding: 0 24px 12px; display: flex; flex-wrap: wrap; gap: 8px; }
+    .chips button {
+      background: #fff; border: 1px solid var(--primary); color: var(--primary);
+      padding: 7px 14px; border-radius: 20px; font-size: 0.85rem; cursor: pointer; transition: 0.2s;
+    }
+    .chips button:hover { background: var(--primary); color: #fff; }
+
+    .input-bar {
+      padding: 16px 24px; border-top: 1px solid var(--border); display: flex; gap: 12px; align-items: flex-end; background: #fff;
+    }
+    textarea {
+      flex: 1; border: 1.5px solid var(--border); border-radius: 12px; padding: 12px 14px;
+      font-size: 0.95rem; resize: none; max-height: 130px; outline: none; line-height: 1.4;
+    }
+    textarea:focus { border-color: var(--primary); }
+    .btn-send {
+      background: var(--primary); color: #fff; border: none; padding: 12px 22px;
+      border-radius: 12px; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: 0.2s;
+    }
+    .btn-send:hover:not(:disabled) { background: var(--primary-hover); }
+    .btn-send:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    @media (max-width: 768px) {
+      .app { grid-template-columns: 1fr; height: 95vh; }
+      .sidebar { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="app">
+  <aside class="sidebar">
+    <div>
+      <div class="brand">
+        <h1>Ruang Cerita</h1>
+        <p>Tempat tenang untuk menceritakan apa yang kamu rasakan. Tidak ada penilaian, kamu bebas bercerita dengan kecepatanmu sendiri.</p>
+        <p>Tarik napas saat lingkaran membesar, hembuskan saat mengecil.</p>
+      </div>
+      <div class="breathe-box">
+        <div class="circle" id="breatheText">tarik napas</div>
+      </div>
+    </div>
+
+    <div class="disclaimer">
+      Chat ini ditemani AI dan <strong>bukan pengganti psikolog atau psikiater</strong>. Jika kamu merasa ingin menyakiti diri sendiri atau dalam bahaya, segera hubungi layanan darurat (<strong>112</strong>), layanan kesehatan jiwa <strong>119 ext. 8</strong>, atau orang terdekat.
+    </div>
+  </aside>
+
+  <main class="chat-area">
+    <div class="chat-header">
+      <span>Pendamping AI &middot; percakapan tidak disimpan di server ini</span>
+      <button class="btn-reset" id="reset" type="button">Mulai Ulang</button>
+    </div>
+
+    <div class="chat-log" id="log"></div>
+    <div class="chips" id="chips"></div>
+
+    <div class="input-bar">
+      <textarea id="input" rows="1" placeholder="Tulis apa yang kamu rasakan..."></textarea>
+      <button class="btn-send" id="send" type="button">Kirim</button>
+    </div>
+  </main>
+</div>
+
+<script>
+const CONFIG = {
+  API_URL: "/api/chat",
+  GREETING: "Halo, aku Teman Cerita. Aku di sini untuk mendengarkan. Hari ini kamu merasa bagaimana?",
+  SUGGESTIONS: ["Aku merasa cemas", "Aku lelah dan kewalahan", "Aku sedih akhir-akhir ini", "Aku sulit tidur"]
+};
+
+const CRISIS_WORDS = ["bunuh diri", "mengakhiri hidup", "ingin mati", "menyakiti diri", "self harm", "tidak ingin hidup"];
+const CRISIS_REPLY = "Aku sangat peduli dengan keselamatanmu. Apa yang kamu rasakan terdengar berat, dan kamu tidak harus menanggungnya sendirian. Tolong hubungi orang yang kamu percaya sekarang, atau layanan kesehatan jiwa 119 ext. 8 / darurat 112. Jika kamu dalam bahaya saat ini, segera cari bantuan terdekat. Aku tetap di sini, mau ceritakan apa yang sedang terjadi?";
+
+const log = document.getElementById("log");
+const input = document.getElementById("input");
+const sendBtn = document.getElementById("send");
+const chips = document.getElementById("chips");
+const breatheText = document.getElementById("breatheText");
+let history = [];
+
+// Siklus teks napas 8 detik (4 detik tarik, 4 detik hembus)
+setInterval(() => {
+  breatheText.textContent = breatheText.textContent === "tarik napas" ? "napas pelan" : "tarik napas";
+}, 4000);
+
+function addMsg(text, cls) {
+  const d = document.createElement("div");
+  d.className = "msg " + cls;
+  d.textContent = text;
+  log.appendChild(d);
+  log.scrollTop = log.scrollHeight;
+  return d;
+}
+
+function start() {
+  history = [];
+  log.innerHTML = "";
+  addMsg(CONFIG.GREETING, "bot");
+  chips.innerHTML = "";
+  CONFIG.SUGGESTIONS.forEach(s => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.textContent = s;
+    b.onclick = () => { input.value = s; send(); };
+    chips.appendChild(b);
+  });
+}
+
+async function getReply() {
+  const res = await fetch(CONFIG.API_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ messages: history })
+  });
+
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Gagal terhubung ke server AI");
+  return data.reply;
+}
+
+async function send() {
+  const text = input.value.trim();
+  if (!text || sendBtn.disabled) return;
+  input.value = "";
+  input.style.height = "auto";
+  chips.innerHTML = "";
+  addMsg(text, "user");
+  history.push({ role: "user", content: text });
+
+  if (CRISIS_WORDS.some(w => text.toLowerCase().includes(w))) {
+    addMsg(CRISIS_REPLY, "bot");
+    history.push({ role: "assistant", content: CRISIS_REPLY });
+    return;
+  }
+
+  sendBtn.disabled = true;
+  const typing = addMsg("Teman Cerita sedang mengetik…", "bot typing");
+  try {
+    const reply = await getReply();
+    typing.remove();
+    addMsg(reply, "bot");
+    history.push({ role: "assistant", content: reply });
+  } catch (e) {
+    typing.remove();
+    addMsg("Gagal membalas: " + e.message, "err");
+    history.pop();
+  } finally {
+    sendBtn.disabled = false;
+    input.focus();
+  }
+}
+
+sendBtn.onclick = send;
+document.getElementById("reset").onclick = start;
+input.addEventListener("keydown", e => {
+  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
+});
+input.addEventListener("input", () => {
+  input.style.height = "auto";
+  input.style.height = Math.min(input.scrollHeight, 130) + "px";
+});
+
+start();
+</script>
+</body>
+</html>
